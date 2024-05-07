@@ -10,6 +10,7 @@ use alloc::vec;
 use align_ext::AlignExt;
 use core::str;
 
+use aster_frame::arch::qemu::{exit_qemu, QemuExitCode};
 use aster_frame::cpu::UserContext;
 use aster_frame::prelude::*;
 use aster_frame::task::{Task, TaskOptions};
@@ -22,14 +23,13 @@ use aster_frame::vm::{Vaddr, VmAllocOptions, VmIo, VmMapOptions, VmPerm, VmSpace
 /// labeled as `#[aster_main]` will be called.
 #[aster_main]
 pub fn main() {
-    println!("[kernel] boot success");
+    println!("[Kernel] Boot success");
     let scheduler = Box::new(sched::MySched::new());
     aster_frame::task::set_scheduler(Box::leak(scheduler));
-    let program_binary = include_bytes!("../hello_world");
+    let program_binary = include_bytes!("../example_apps/hello_world/hello_world");
     let user_space = create_user_space(program_binary);
     let user_task = create_user_task(Arc::new(user_space));
     user_task.run();
-    println!("[kerel] halt");
 }
 
 fn create_user_space(program: &[u8]) -> UserSpace {
@@ -49,8 +49,9 @@ fn create_user_space(program: &[u8]) -> UserSpace {
         // the VmSpace abstraction.
         let vm_space = VmSpace::new();
         let mut options = VmMapOptions::new();
-        options.addr(Some(MAP_ADDR)).perm(VmPerm::RWX);
+        options.addr(Some(MAP_ADDR)).perm(VmPerm::RWXU);
         vm_space.map(user_pages, &options).unwrap();
+        vm_space.activate();
         vm_space
     };
     let user_cpu_state = {
@@ -84,8 +85,13 @@ fn create_user_task(user_space: Arc<UserSpace>) -> Arc<Task> {
             // can be accessed and manipulated via
             // the `UserContext` abstraction.
             let user_context = user_mode.context_mut();
-            if UserEvent::Syscall == user_event {
-                handle_syscall(user_context, current.user_space().unwrap());
+            match user_event {
+                UserEvent::Syscall => handle_syscall(user_context, current.user_space().unwrap()),
+                UserEvent::Exception => {
+                    println!("[Kernel] User mode exception detected!");
+                    println!("{:#?}", user_context.trap_information());
+                    break;
+                }
             }
         }
     }
@@ -102,6 +108,7 @@ fn create_user_task(user_space: Arc<UserSpace>) -> Arc<Task> {
 
 fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
     const SYS_WRITE: usize = 1;
+    const SYS_SHUTDOWN: usize = 48;
     const SYS_EXIT: usize = 60;
 
     match user_context.general_regs().a0 {
@@ -127,7 +134,14 @@ fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
             // Manipulate the user-space CPU registers safely.
             user_context.set_syscall_ret(buf_len);
         }
+        SYS_SHUTDOWN => {
+            println!("[Kernel] Shutting down");
+            exit_qemu(QemuExitCode::Success);
+        }
         SYS_EXIT => Task::current().exit(),
-        _ => unimplemented!(),
+        s => {
+            println!("[Kernel] Unimplemented syscall {} received", s);
+            unimplemented!()
+        }
     }
 }

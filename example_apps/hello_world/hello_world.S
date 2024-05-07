@@ -7,11 +7,10 @@ _start:
     la a3, message_end
     sub a3, a3, a2
     ecall
-    addi a0, zero, 60
-    addi a1, zero, 1
+    addi a0, zero, 48
     ecall
 
 .section .rodata                    # read only data section
 message:
-    .ascii  "Hello, world\n"
+    .ascii  "[App] Hello, world!\n"
 message_end:
