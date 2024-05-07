@@ -6,6 +6,9 @@ edition = "2021"
 [dependencies.aster-frame]
 path = "../asterinas/framework/aster-frame" 
 
+[dependencies.align_ext]
+path = "../asterinas/framework/libs/align_ext" 
+
 [dependencies.ktest]
 path = "../asterinas/framework/libs/ktest" 
 
