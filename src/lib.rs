@@ -107,6 +107,8 @@ fn create_user_task(user_space: Arc<UserSpace>) -> Arc<Task> {
 }
 
 fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
+    user_context.set_instruction_pointer(user_context.instruction_pointer() + 4);
+
     const SYS_WRITE: usize = 1;
     const SYS_SHUTDOWN: usize = 48;
     const SYS_EXIT: usize = 60;
