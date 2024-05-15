@@ -1,0 +1,13 @@
+[package]
+name = "nike-os"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.aster-frame]
+path = "../asterinas/framework/aster-frame" 
+
+[dependencies.ktest]
+path = "../asterinas/framework/libs/ktest" 
+
+[workspace]
+exclude = ["target/osdk/base"]
