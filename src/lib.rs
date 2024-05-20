@@ -11,6 +11,12 @@ use aster_frame::{
     task::{add_task, schedule, Task, TaskOptions},
 };
 
+pub fn idle() {
+    loop {
+        schedule();
+    }
+}
+
 pub fn greet() {
     println!("[Kernel] Greetings");
 }
@@ -19,8 +25,10 @@ pub fn greet() {
 pub fn kern() {
     let scheduler = Box::leak(Box::new(sched::MySched::new()));
     aster_frame::task::set_scheduler(scheduler);
-    let kern_task: Arc<Task> = TaskOptions::new(idle).data(0).build().unwrap();
-    add_task(kern_task.clone());
+    let kern_task_1: Arc<Task> = TaskOptions::new(idle).data(0).build().unwrap();
+    let kern_task_2: Arc<Task> = TaskOptions::new(greet).data(0).build().unwrap();
+    add_task(kern_task_1.clone());
+    add_task(kern_task_2.clone());
     schedule();
     loop {}
 }
