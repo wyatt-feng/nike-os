@@ -1,0 +1,19 @@
+project_type = "kernel"
+supported_archs = ["riscv64"]
+
+[boot]
+method = "qemu-direct"
+
+[run.boot]
+initramfs = "./initramfs.cpio.gz"
+
+[qemu]
+args = """\
+    -machine virt \
+    -m 2G \
+    -smp 1 \
+    -nographic \
+    -serial chardev:mux \
+    -monitor chardev:mux \
+    -chardev stdio,id=mux,mux=on,signal=off \
+"""
