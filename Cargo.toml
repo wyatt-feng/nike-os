@@ -3,14 +3,13 @@ name = "nike-os"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies.aster-frame]
-path = "../asterinas/framework/aster-frame" 
+[dependencies]
+aster-frame = { path = "../asterinas/framework/aster-frame" }
+align_ext = { path = "../asterinas/framework/libs/align_ext" }
+ktest = { path = "../asterinas/framework/libs/ktest" }
+aster-block = { path = "../asterinas/kernel/comps/block" }
 
-[dependencies.align_ext]
-path = "../asterinas/framework/libs/align_ext" 
-
-[dependencies.ktest]
-path = "../asterinas/framework/libs/ktest" 
+bitvec = { version = "1", default-features = false, features = ["alloc"] }
 
 [workspace]
 exclude = ["target/osdk/base"]
